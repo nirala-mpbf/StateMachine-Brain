@@ -6,6 +6,7 @@ import com.example.statemachine.exception.WorkflowConflictException;
 import com.example.statemachine.model.WorkflowInstance;
 import com.example.statemachine.repository.WorkflowRepository;
 import com.example.statemachine.statemachine.event.WorkflowEvent;
+import com.example.statemachine.statemachine.properties.WorkflowProperties;
 import com.example.statemachine.statemachine.state.WorkflowState;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
@@ -20,16 +21,19 @@ public class StateMachineServiceImpl implements  StateMachineService {
 
     private final StateMachineFactory<WorkflowState, WorkflowEvent> factory;
     private final WorkflowRepository repository;
+    private final WorkflowProperties workflowProperties;
 
     public StateMachineServiceImpl(StateMachineFactory<WorkflowState, WorkflowEvent> factory,
-                               WorkflowRepository repository) {
+                                   WorkflowRepository repository,
+                                   WorkflowProperties workflowProperties) {
         this.factory = factory;
         this.repository = repository;
+        this.workflowProperties = workflowProperties;
     }
 
     @Override
     public WorkflowInstance createWorkflow(String referenceId) {
-        repository.create(referenceId);
+        repository.create(referenceId, workflowProperties.initialState());
         return getWorkflow(referenceId);
     }
 

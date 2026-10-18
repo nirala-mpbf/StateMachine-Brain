@@ -17,7 +17,7 @@ public class WorkflowRepository {
         this.namedParameterJdbcTemplate = jdbc;
     }
 
-    public void create(String referenceId) {
+    public void create(String referenceId, WorkflowState initialState) {
 
         String sql = """
                     INSERT INTO workflow_brain.workflow_instances
@@ -27,7 +27,7 @@ public class WorkflowRepository {
 
         Map<String, Object> params = Map.of(
                 "referenceId", referenceId,
-                "state", WorkflowState.OTP_VERIFICATION.name()
+                "state", initialState.name()
         );
 
         namedParameterJdbcTemplate.update(sql, params);
