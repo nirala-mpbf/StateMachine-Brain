@@ -1,9 +1,11 @@
 package com.example.statemachine.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.example.statemachine.statemachine.event.WorkflowEvent;
 import com.example.statemachine.statemachine.state.WorkflowState;
 
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class WorkflowDetails {
     private String  referenceId;
     private WorkflowState currentState;

@@ -3,7 +3,7 @@ package com.example.statemachine.service.impl;
 import com.example.statemachine.dto.WorkflowRequest;
 import com.example.statemachine.exception.NotFoundException;
 import com.example.statemachine.exception.WorkflowConflictException;
-import com.example.statemachine.model.WorkflowInstance;
+import com.example.statemachine.dto.WorkflowDetails;
 import com.example.statemachine.repository.WorkflowRepository;
 import com.example.statemachine.service.WorkflowService;
 import com.example.statemachine.statemachine.event.WorkflowEvent;
@@ -27,44 +27,66 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public WorkflowInstance createWorkflow(String referenceId) {
+    public WorkflowDetails createWorkflow(String referenceId) {
         repository.create(referenceId, workflowProperties.initialState());
         return getWorkflow(referenceId);
     }
 
     @Override
-    public WorkflowInstance getWorkflow(String referenceId) {
-        return repository.findByReferenceId(referenceId)
-                .orElseThrow(() -> new NotFoundException("Workflow " + referenceId + " not found"));
+    public WorkflowDetails getWorkflow(String referenceId) {
+        WorkflowDetails details = findWorkflow(referenceId);
+        populateWorkflowDetails(details);
+        return details;
     }
 
     @Override
-    public WorkflowInstance verifyOtp(WorkflowRequest request) {
+    public WorkflowDetails verifyOtp(WorkflowRequest request) {
         return processEvent(request.referenceId(), WorkflowEvent.OTP_VERIFIED);
     }
 
     @Override
-    public WorkflowInstance submitProfile(WorkflowRequest request) {
+    public WorkflowDetails submitProfile(WorkflowRequest request) {
         return processEvent(request.referenceId(), WorkflowEvent.PROFILE_SUBMITTED);
     }
 
     @Override
-    public WorkflowInstance enterAccountStatement(WorkflowRequest request) {
+    public WorkflowDetails enterAccountStatement(WorkflowRequest request) {
         return processEvent(request.referenceId(), WorkflowEvent.ACCOUNT_STATEMENT_UPLOADED);
     }
 
     @Override
-    public WorkflowInstance uploadUdyamDocument(WorkflowRequest request) {
+    public WorkflowDetails uploadUdyamDocument(WorkflowRequest request) {
         return processEvent(request.referenceId(), WorkflowEvent.UDYAM_DOCUMENT_UPLOADED);
     }
 
-    private WorkflowInstance processEvent(String referenceId, WorkflowEvent event) {
-        WorkflowInstance current = getWorkflow(referenceId);
-        WorkflowState nextState = stateMachineService.transition(referenceId, current.state(), event);
+    private WorkflowDetails processEvent(String referenceId, WorkflowEvent event) {
+        WorkflowDetails current = findWorkflow(referenceId);
+        WorkflowState nextState = stateMachineService.transition(referenceId, current.getCurrentState(), event);
 
-        if (!repository.updateState(referenceId, current.state(), nextState)) {
+        if (!repository.updateState(referenceId, current.getCurrentState(), nextState)) {
             throw new WorkflowConflictException("Workflow state was changed by another request. Please retry.");
         }
         return getWorkflow(referenceId);
+    }
+
+    private WorkflowDetails findWorkflow(String referenceId) {
+        return repository.findByReferenceId(referenceId)
+                .orElseThrow(() -> new NotFoundException("Workflow " + referenceId + " not found"));
+    }
+
+    private void populateWorkflowDetails(WorkflowDetails workflowDetails) {
+
+        workflowDetails.setCompleted( workflowDetails.getCurrentState() == workflowProperties.terminalState());
+        workflowDetails.setNextEvent(null);
+        workflowDetails.setNextState(null);
+        workflowProperties
+                .transitions()
+                .stream()
+                .filter( transition -> transition.source() == workflowDetails.getCurrentState())
+                .findFirst()
+                .ifPresent( transition -> {
+                    workflowDetails.setNextEvent(transition.event());
+                    workflowDetails.setNextState(transition.target());
+                });
     }
 }

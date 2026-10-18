@@ -1,15 +1,15 @@
 package com.example.statemachine.service;
 
 import com.example.statemachine.dto.WorkflowRequest;
-import com.example.statemachine.model.WorkflowInstance;
+import com.example.statemachine.dto.WorkflowDetails;
 
 public interface WorkflowService {
 
-    WorkflowInstance createWorkflow(String referenceId);
-    WorkflowInstance getWorkflow(String referenceId);
+    WorkflowDetails createWorkflow(String referenceId);
+    WorkflowDetails getWorkflow(String referenceId);
 
-    WorkflowInstance verifyOtp(WorkflowRequest request);
-    WorkflowInstance submitProfile(WorkflowRequest request);
-    WorkflowInstance enterAccountStatement(WorkflowRequest request);
-    WorkflowInstance uploadUdyamDocument(WorkflowRequest request);
+    WorkflowDetails verifyOtp(WorkflowRequest request);
+    WorkflowDetails submitProfile(WorkflowRequest request);
+    WorkflowDetails enterAccountStatement(WorkflowRequest request);
+    WorkflowDetails uploadUdyamDocument(WorkflowRequest request);
 }

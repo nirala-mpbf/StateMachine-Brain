@@ -1,6 +1,6 @@
 package com.example.statemachine.repository;
 
-import com.example.statemachine.model.WorkflowInstance;
+import com.example.statemachine.dto.WorkflowDetails;
 import com.example.statemachine.statemachine.state.WorkflowState;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -33,7 +33,7 @@ public class WorkflowRepository {
         namedParameterJdbcTemplate.update(sql, params);
     }
 
-    public Optional<WorkflowInstance> findByReferenceId(String referenceId) {
+    public Optional<WorkflowDetails> findByReferenceId(String referenceId) {
 
         String sql = """
                     SELECT reference_id, current_state
@@ -43,12 +43,15 @@ public class WorkflowRepository {
 
         Map<String, Object> params = Map.of("referenceId", referenceId);
 
-        List<WorkflowInstance> workflows = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+        List<WorkflowDetails> workflows = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
                     String id = rs.getString("reference_id");
                     String state = rs.getString("current_state");
 
                     WorkflowState workflowState = WorkflowState.valueOf(state);
-                    return new WorkflowInstance(id, workflowState);
+                    WorkflowDetails details = new WorkflowDetails();
+                    details.setReferenceId(id);
+                    details.setCurrentState(workflowState);
+                    return details;
                 }
         );
         return  workflows.stream().findFirst();
