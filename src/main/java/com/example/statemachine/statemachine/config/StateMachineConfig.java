@@ -27,9 +27,9 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<Workfl
     @Override
     public void configure(StateMachineStateConfigurer<WorkflowState, WorkflowEvent> states) throws Exception {
         states.withStates()
-                    .initial(workflow.initialState())
-                    .states(EnumSet.copyOf(workflow.states()))
-                    .end(workflow.terminalState());
+            .initial(workflow.initialState())
+            .states(EnumSet.copyOf(workflow.states()))
+            .end(workflow.terminalState());
     }
 
     @Override
